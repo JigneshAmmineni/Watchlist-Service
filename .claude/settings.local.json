@@ -1,0 +1,26 @@
+{
+  "permissions": {
+    "allow": [
+      "mcp__playwright__browser_type",
+      "mcp__playwright__browser_snapshot",
+      "mcp__playwright__browser_take_screenshot",
+      "mcp__playwright__browser_press_key",
+      "mcp__playwright__browser_close",
+      "Bash(echo:*)",
+      "Bash(findstr:*)",
+      "Bash(powershell -Command \"Get-Content \"\"$env:APPDATA\\\\Code\\\\User\\\\settings.json\"\" 2>$null | Select-String -Pattern ''mcp|playwright'' -CaseSensitive:$false\")",
+      "Bash(npx @playwright/mcp --version)",
+      "Bash(npx playwright:*)",
+      "Bash(powershell -Command:*)",
+      "Bash(ls:*)",
+      "Bash(claude mcp get playwright)",
+      "Bash(curl:*)",
+      "mcp__playwright__browser_install",
+      "mcp__playwright__browser_navigate",
+      "Bash(start http://localhost:8080)",
+      "Bash(docker compose:*)",
+      "Bash(git init:*)",
+      "Bash(git add:*)"
+    ]
+  }
+}

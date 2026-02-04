@@ -1,0 +1,173 @@
+### Base URL (API Gateway)
+@baseUrl = http://localhost:8080
+
+### ===================================
+### API GATEWAY
+### ===================================
+
+### Root endpoint - API Gateway info
+GET {{baseUrl}}/
+
+### ===================================
+### USER SERVICE
+### ===================================
+
+### Health check - User Service
+GET {{baseUrl}}/api/health/users
+
+### Create a new user
+POST {{baseUrl}}/api/users
+Content-Type: application/json
+
+{
+    "name": "John Doe",
+    "email": "john@example.com",
+    "password": "securepassword123"
+}
+
+### Create another user
+POST {{baseUrl}}/api/users
+Content-Type: application/json
+
+{
+    "name": "Jane Smith",
+    "email": "jane@example.com",
+    "password": "anotherpassword456"
+}
+
+### Get all users
+GET {{baseUrl}}/api/users
+
+### Get user by ID
+GET {{baseUrl}}/api/users/1
+
+### Update user
+PUT {{baseUrl}}/api/users/1
+Content-Type: application/json
+
+{
+    "name": "John Updated",
+    "email": "john.updated@example.com",
+    "password": "newpassword789"
+}
+
+### Delete user
+DELETE {{baseUrl}}/api/users/2
+
+### ===================================
+### MOVIE SERVICE
+### ===================================
+
+### Health check - Movie Service
+GET {{baseUrl}}/api/health/movies
+
+### Create a new movie
+POST {{baseUrl}}/api/movies
+Content-Type: application/json
+
+{
+    "title": "Inception",
+    "director": "Christopher Nolan",
+    "year": 2010,
+    "genre": "Sci-Fi",
+    "rating": 8.8
+}
+
+### Create another movie
+POST {{baseUrl}}/api/movies
+Content-Type: application/json
+
+{
+    "title": "The Dark Knight",
+    "director": "Christopher Nolan",
+    "year": 2008,
+    "genre": "Action",
+    "rating": 9.0
+}
+
+### Create a third movie
+POST {{baseUrl}}/api/movies
+Content-Type: application/json
+
+{
+    "title": "Pulp Fiction",
+    "director": "Quentin Tarantino",
+    "year": 1994,
+    "genre": "Crime",
+    "rating": 8.9
+}
+
+### Get all movies
+GET {{baseUrl}}/api/movies
+
+### Get movies by genre
+GET {{baseUrl}}/api/movies?genre=Sci-Fi
+
+### Get movie by ID
+GET {{baseUrl}}/api/movies/1
+
+### Get movies batch (multiple IDs at once)
+POST {{baseUrl}}/api/movies/batch
+Content-Type: application/json
+
+{
+    "movie_ids": [1, 2, 3]
+}
+
+### Update movie
+PUT {{baseUrl}}/api/movies/1
+Content-Type: application/json
+
+{
+    "title": "Inception",
+    "director": "Christopher Nolan",
+    "year": 2010,
+    "genre": "Sci-Fi",
+    "rating": 9.0
+}
+
+### Delete movie
+DELETE {{baseUrl}}/api/movies/3
+
+### ===================================
+### WATCHLIST SERVICE
+### ===================================
+
+### Health check - Watchlist Service
+GET {{baseUrl}}/api/health/watchlist
+
+### Add movie to user's watchlist
+POST {{baseUrl}}/api/watchlist
+Content-Type: application/json
+
+{
+    "user_id": 1,
+    "movie_id": 1
+}
+
+### Add another movie to watchlist
+POST {{baseUrl}}/api/watchlist
+Content-Type: application/json
+
+{
+    "user_id": 1,
+    "movie_id": 2
+}
+
+### Get user's watchlist (with movie details)
+GET {{baseUrl}}/api/watchlist/user/1
+
+### Export user's watchlist (full movie objects)
+GET {{baseUrl}}/api/watchlist/user/1/export
+
+### Check if movie is in user's watchlist
+GET {{baseUrl}}/api/watchlist/user/1/movie/1
+
+### Get all users watching a specific movie
+GET {{baseUrl}}/api/watchlist/movie/1
+
+### Remove specific movie from user's watchlist
+DELETE {{baseUrl}}/api/watchlist/user/1/movie/2
+
+### Remove watchlist entry by ID
+DELETE {{baseUrl}}/api/watchlist/1
