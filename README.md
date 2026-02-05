@@ -306,7 +306,3 @@ docker exec -it watchlist-db psql -U watchlist -d watchlistdb
 - **API Gateway**: Nginx
 - **Container Orchestration**: Docker Compose
 - **HTTP Client**: httpx
-
-## License
-
-MIT

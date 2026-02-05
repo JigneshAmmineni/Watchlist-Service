@@ -1,0 +1,1 @@
+Using git, add and commit all the files with a descriptive message.

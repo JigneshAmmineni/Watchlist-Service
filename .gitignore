@@ -24,5 +24,8 @@ nul
 # Session notes
 session-notes-*.md
 
+# Worktrees
+.trees/
+
 # Misc
 evil-search-results*.png
