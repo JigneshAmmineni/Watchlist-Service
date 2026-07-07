@@ -8,6 +8,8 @@ from contextlib import contextmanager
 import redis
 import json
 
+from db import close_db_connection, init_db
+
 app = FastAPI(title="Movie Service")
 
 DATABASE_URL = os.getenv("DATABASE_URL")
@@ -41,21 +43,6 @@ def get_db_connection():
     finally:
         conn.close()
 
-# Initializes the database by creating the movies table if it doesn't exist.
-def init_db():
-    with get_db_connection() as conn:
-        with conn.cursor() as cur:
-            cur.execute("""
-                CREATE TABLE IF NOT EXISTS movies (
-                    id SERIAL PRIMARY KEY,
-                    title VARCHAR(200) NOT NULL,
-                    director VARCHAR(100) NOT NULL,
-                    year INTEGER NOT NULL,
-                    genre VARCHAR(50) NOT NULL,
-                    rating DECIMAL(3, 1)
-                )
-            """)
-
 # Generates a Redis cache key for a specific movie by ID.
 def get_cache_key(movie_id: int) -> str:
     return f"movie:{movie_id}"
@@ -68,6 +55,11 @@ def get_all_movies_cache_key() -> str:
 @app.on_event("startup")
 async def startup_event():
     init_db()
+
+# Runs on application shutdown to release database connections.
+@app.on_event("shutdown")
+async def shutdown_event():
+    close_db_connection()
 
 # Returns service name, status, and cache info.
 @app.get("/")

@@ -7,6 +7,8 @@ from psycopg2.extras import RealDictCursor
 from contextlib import contextmanager
 import httpx
 
+from db import close_db_connection, init_db
+
 app = FastAPI(title="Watchlist Service")
 
 DATABASE_URL = os.getenv("DATABASE_URL")
@@ -38,26 +40,6 @@ def get_db_connection():
         raise
     finally:
         conn.close()
-
-# Initializes the database by creating the watchlist table and indexes if they don't exist.
-def init_db():
-    with get_db_connection() as conn:
-        with conn.cursor() as cur:
-            cur.execute("""
-                CREATE TABLE IF NOT EXISTS watchlist (
-                    id SERIAL PRIMARY KEY,
-                    user_id INTEGER NOT NULL,
-                    movie_id INTEGER NOT NULL,
-                    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-                    UNIQUE(user_id, movie_id)
-                )
-            """)
-            cur.execute("""
-                CREATE INDEX IF NOT EXISTS idx_watchlist_user_id ON watchlist(user_id)
-            """)
-            cur.execute("""
-                CREATE INDEX IF NOT EXISTS idx_watchlist_movie_id ON watchlist(movie_id)
-            """)
 
 # Validates that a user exists by calling the user-service API.
 async def validate_user_exists(user_id: int) -> bool:
@@ -92,6 +74,11 @@ async def get_movie_details(movie_id: int) -> Optional[dict]:
 @app.on_event("startup")
 async def startup_event():
     init_db()
+
+# Runs on application shutdown to release database connections.
+@app.on_event("shutdown")
+async def shutdown_event():
+    close_db_connection()
 
 # Returns service name and status information.
 @app.get("/")

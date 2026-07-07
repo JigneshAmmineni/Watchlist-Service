@@ -23,7 +23,6 @@ services:
     build:
       context: ./user-service
       dockerfile: Dockerfile
-    container_name: user-service
     environment:
       - DATABASE_URL=postgresql://user:password@user-db:5432/userdb
     depends_on:
@@ -62,7 +61,6 @@ services:
     build:
       context: ./movie-service
       dockerfile: Dockerfile
-    container_name: movie-service
     environment:
       - DATABASE_URL=postgresql://movie:password@movie-db:5432/moviedb
       - REDIS_URL=redis://redis:6379
@@ -104,7 +102,6 @@ services:
     build:
       context: ./watchlist-service
       dockerfile: Dockerfile
-    container_name: watchlist-service
     environment:
       - DATABASE_URL=postgresql://watchlist:password@watchlist-db:5432/watchlistdb
       - USER_SERVICE_URL=http://user-service:8000

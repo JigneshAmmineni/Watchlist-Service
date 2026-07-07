@@ -6,6 +6,8 @@ import psycopg2
 from psycopg2.extras import RealDictCursor
 from contextlib import contextmanager
 
+from db import close_db_connection, init_db
+
 app = FastAPI(title="User Service")
 
 DATABASE_URL = os.getenv("DATABASE_URL")
@@ -29,23 +31,15 @@ def get_db_connection():
     finally:
         conn.close()
 
-# Initializes the database by creating the users table if it doesn't exist.
-def init_db():
-    with get_db_connection() as conn:
-        with conn.cursor() as cur:
-            cur.execute("""
-                CREATE TABLE IF NOT EXISTS users (
-                    id SERIAL PRIMARY KEY,
-                    name VARCHAR(100) NOT NULL,
-                    email VARCHAR(100) UNIQUE NOT NULL,
-                    password VARCHAR(255) NOT NULL
-                )
-            """)
-
 # Runs on application startup to initialize the database.
 @app.on_event("startup")
 async def startup_event():
     init_db()
+
+# Runs on application shutdown to release database connections.
+@app.on_event("shutdown")
+async def shutdown_event():
+    close_db_connection()
 
 # Returns service name and status information.
 @app.get("/")
