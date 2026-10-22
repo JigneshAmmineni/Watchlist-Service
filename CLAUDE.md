@@ -60,7 +60,7 @@ Client → Nginx API Gateway (port 8080) → Microservices (internal port 8000)
 | `/api/watchlist/*` | `watchlist-service:8000/watchlist/*` |
 | `/api/health/{service}` | `{service}:8000/health` |
 
-### Database Ports (for external access via PgAdmin, etc.)
+### Database Ports (published on 127.0.0.1 only, for PgAdmin etc.)
 | Database | Host Port | Username | Password | Database Name |
 |----------|-----------|----------|----------|---------------|
 | user-db | 5432 | user | password | userdb |
@@ -74,4 +74,5 @@ Client → Nginx API Gateway (port 8080) → Microservices (internal port 8000)
 
 ## Testing
 
-Use `test.http` with VSCode REST Client extension for manual API testing against `http://localhost:8080`.
+- Unit tests: `cd <service> && pytest` (user-service and movie-service; DB and Redis are mocked).
+- Manual API testing: `test.http` with the VSCode REST Client extension against `http://localhost:8080`.

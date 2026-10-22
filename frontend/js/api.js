@@ -9,7 +9,11 @@ const API = {
     const response = await fetch(url, config);
     if (!response.ok) {
       const err = await response.json().catch(() => ({}));
-      throw new Error(err.detail || `Request failed with status ${response.status}`);
+      // FastAPI returns a string for HTTPException and a list for validation errors.
+      const detail = Array.isArray(err.detail)
+        ? err.detail.map((d) => `${(d.loc || []).slice(1).join('.')}: ${d.msg}`).join('; ')
+        : err.detail;
+      throw new Error(detail || `Request failed with status ${response.status}`);
     }
     if (response.status === 204) return null;
     return response.json();

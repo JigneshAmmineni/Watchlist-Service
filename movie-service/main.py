@@ -1,16 +1,14 @@
 from fastapi import FastAPI, HTTPException
-from pydantic import BaseModel
+from pydantic import BaseModel, Field
 from typing import List, Optional
 import os
 import psycopg2
 from psycopg2.extras import RealDictCursor
-from contextlib import contextmanager
+from contextlib import asynccontextmanager, contextmanager
 import redis
 import json
 
 from db import close_db_connection, init_db
-
-app = FastAPI(title="Movie Service")
 
 DATABASE_URL = os.getenv("DATABASE_URL")
 REDIS_URL = os.getenv("REDIS_URL")
@@ -18,17 +16,30 @@ REDIS_URL = os.getenv("REDIS_URL")
 # Initialize Redis client
 redis_client = redis.from_url(REDIS_URL, decode_responses=True)
 CACHE_TTL = 3600  # 1 hour
+MAX_BATCH_SIZE = 100
+
+
+# Initializes the database on startup and releases connections on shutdown.
+@asynccontextmanager
+async def lifespan(app: FastAPI):
+    init_db()
+    yield
+    close_db_connection()
+
+
+app = FastAPI(title="Movie Service", lifespan=lifespan)
+
 
 class Movie(BaseModel):
     id: Optional[int] = None
-    title: str
-    director: str
-    year: int
-    genre: str
-    rating: Optional[float] = None
+    title: str = Field(min_length=1, max_length=200)
+    director: str = Field(min_length=1, max_length=100)
+    year: int = Field(ge=1888, le=2100)
+    genre: str = Field(min_length=1, max_length=50)
+    rating: Optional[float] = Field(default=None, ge=0, le=10)
 
 class BatchMovieRequest(BaseModel):
-    movie_ids: List[int]
+    movie_ids: List[int] = Field(max_length=MAX_BATCH_SIZE)
 
 # Context manager that provides a database connection with automatic commit/rollback.
 @contextmanager
@@ -50,16 +61,6 @@ def get_cache_key(movie_id: int) -> str:
 # Returns the Redis cache key for the all-movies list.
 def get_all_movies_cache_key() -> str:
     return "movies:all"
-
-# Runs on application startup to initialize the database.
-@app.on_event("startup")
-async def startup_event():
-    init_db()
-
-# Runs on application shutdown to release database connections.
-@app.on_event("shutdown")
-async def shutdown_event():
-    close_db_connection()
 
 # Returns service name, status, and cache info.
 @app.get("/")
