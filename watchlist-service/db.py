@@ -6,7 +6,9 @@ from sqlmodel import Field, SQLModel, create_engine
 
 DATABASE_URL = os.getenv("DATABASE_URL")
 
-engine = create_engine(DATABASE_URL)
+# SQLAlchemy 2.1+ defaults "postgresql://" to psycopg (v3); name the psycopg2 driver explicitly
+# so the ORM and the raw psycopg2 connections in main.py share one driver.
+engine = create_engine(DATABASE_URL.replace("postgresql://", "postgresql+psycopg2://", 1))
 
 
 # Defines the shape of the watchlist table in the database.

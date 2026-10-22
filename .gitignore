@@ -9,14 +9,14 @@ venv/
 .env
 *.env.local
 
-# IDE
+# IDE / local tool settings
 .vscode/
 .idea/
+.claude/settings.local.json
 
 # OS
 .DS_Store
 Thumbs.db
-nul
 
 # Playwright MCP
 .playwright-mcp/
@@ -26,6 +26,3 @@ session-notes-*.md
 
 # Worktrees
 .trees/
-
-# Misc
-evil-search-results*.png

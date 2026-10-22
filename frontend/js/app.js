@@ -107,7 +107,7 @@ document.addEventListener('alpine:init', () => {
     // Opens the user modal in edit mode, pre-filling the form with existing data.
     openEditUser(user) {
       this.editingUser = user;
-      this.userForm = { name: user.name, email: user.email, password: user.password };
+      this.userForm = { name: user.name, email: user.email, password: '' };
       this.showUserModal = true;
     },
 
@@ -115,7 +115,9 @@ document.addEventListener('alpine:init', () => {
     async saveUser() {
       try {
         if (this.editingUser) {
-          await API.updateUser(this.editingUser.id, this.userForm);
+          // A blank password on edit keeps the current one.
+          const { password, ...rest } = this.userForm;
+          await API.updateUser(this.editingUser.id, password ? this.userForm : rest);
           this.showToast('User updated successfully');
         } else {
           await API.createUser(this.userForm);

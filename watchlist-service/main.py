@@ -4,16 +4,25 @@ from typing import List, Optional
 import os
 import psycopg2
 from psycopg2.extras import RealDictCursor
-from contextlib import contextmanager
+from contextlib import asynccontextmanager, contextmanager
 import httpx
 
 from db import close_db_connection, init_db
 
-app = FastAPI(title="Watchlist Service")
-
 DATABASE_URL = os.getenv("DATABASE_URL")
 USER_SERVICE_URL = os.getenv("USER_SERVICE_URL")
 MOVIE_SERVICE_URL = os.getenv("MOVIE_SERVICE_URL")
+
+
+# Initializes the database on startup and releases connections on shutdown.
+@asynccontextmanager
+async def lifespan(app: FastAPI):
+    init_db()
+    yield
+    close_db_connection()
+
+
+app = FastAPI(title="Watchlist Service", lifespan=lifespan)
 
 class WatchlistEntry(BaseModel):
     id: Optional[int] = None
@@ -69,16 +78,6 @@ async def get_movie_details(movie_id: int) -> Optional[dict]:
             return None
         except Exception:
             return None
-
-# Runs on application startup to initialize the database.
-@app.on_event("startup")
-async def startup_event():
-    init_db()
-
-# Runs on application shutdown to release database connections.
-@app.on_event("shutdown")
-async def shutdown_event():
-    close_db_connection()
 
 # Returns service name and status information.
 @app.get("/")

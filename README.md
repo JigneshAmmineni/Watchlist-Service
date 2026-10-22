@@ -1,6 +1,10 @@
 # Movie Watchlist Microservices System
 
-A distributed microservices architecture for managing users, movies, and watchlists, built with FastAPI, PostgreSQL, Redis, and Docker Compose.
+A small, fully runnable microservices demo: three FastAPI services (users, movies, watchlists) behind an nginx API gateway, each with its own PostgreSQL database, a Redis cache-aside layer for the movie catalog, and a single-page frontend. One `docker compose up` brings up all eight containers.
+
+> **About this project.** This repo was my Claude Code tutorial: I recreated a project I had previously coded by hand and knew every line of, so I could judge how Claude Code works and what it can and cannot do. The `CLAUDE.md` file and `.claude/commands/` folder are part of that experiment.
+
+> **Demo scope.** There is no authentication or authorization; every endpoint is open. Passwords are bcrypt-hashed and never returned by the API, but this is a learning project, not a production service.
 
 ## Architecture Overview
 
@@ -26,7 +30,7 @@ Additional components:
 ### 1. Start All Services
 
 ```bash
-docker-compose up --build
+docker compose up --build
 ```
 
 This will start:
@@ -60,6 +64,7 @@ curl -X POST http://localhost:8080/api/users \
   -H "Content-Type: application/json" \
   -d '{"name": "John Doe", "email": "john@example.com", "password": "password123"}'
 ```
+Returns `201` with `id`, `name`, and `email`. Passwords must be at least 8 characters; the hash is never returned. A duplicate email returns `409`.
 
 #### Get All Users
 ```bash
@@ -77,6 +82,7 @@ curl -X PUT http://localhost:8080/api/users/1 \
   -H "Content-Type: application/json" \
   -d '{"name": "Jane Doe", "email": "jane@example.com", "password": "newpass123"}'
 ```
+Omit `password` to keep the current one.
 
 #### Delete User
 ```bash
@@ -107,7 +113,7 @@ curl "http://localhost:8080/api/movies?genre=Drama"
 curl http://localhost:8080/api/movies/1
 ```
 
-#### Batch Get Movies (NEW)
+#### Batch Get Movies (up to 100 IDs)
 ```bash
 curl -X POST http://localhost:8080/api/movies/batch \
   -H "Content-Type: application/json" \
@@ -140,7 +146,7 @@ curl -X POST http://localhost:8080/api/watchlist \
 curl http://localhost:8080/api/watchlist/user/1
 ```
 
-#### Export User's Watchlist (full movie objects) (NEW)
+#### Export User's Watchlist (full movie objects)
 ```bash
 curl http://localhost:8080/api/watchlist/user/1/export
 ```
@@ -226,10 +232,12 @@ The movie service implements a cache-aside pattern:
 - Batch endpoint reduces N+1 query problem
 
 ### Database Design
-Each service has its own PostgreSQL database:
-- **userdb**: Stores user accounts
+Each service has its own PostgreSQL database, with tables defined as SQLModel classes in each service's `db.py`:
+- **userdb**: Stores user accounts (passwords stored as bcrypt hashes)
 - **moviedb**: Stores movie catalog
 - **watchlistdb**: Stores user-movie relationships with indexes on user_id and movie_id
+
+Database and Redis ports are published on `127.0.0.1` only, so they are reachable from the host for tools like PgAdmin but not from the network.
 
 ## Project Structure
 
@@ -237,44 +245,64 @@ Each service has its own PostgreSQL database:
 .
 ├── docker-compose.yml
 ├── nginx/
-│   └── nginx.conf
+│   └── nginx.conf            # API gateway routing + static frontend
+├── frontend/                 # Alpine.js + Tailwind single-page UI (no build step)
+│   ├── index.html
+│   ├── js/api.js
+│   ├── js/app.js
+│   └── css/styles.css
 ├── user-service/
-│   ├── main.py
+│   ├── main.py               # FastAPI routes
+│   ├── db.py                 # SQLModel table definition + init
+│   ├── test_main.py
 │   ├── requirements.txt
 │   └── Dockerfile
 ├── movie-service/
 │   ├── main.py
+│   ├── db.py
+│   ├── test_main.py
 │   ├── requirements.txt
 │   └── Dockerfile
 ├── watchlist-service/
 │   ├── main.py
+│   ├── db.py
 │   ├── requirements.txt
 │   └── Dockerfile
+├── test.http                 # Manual API tests (VS Code REST Client)
+├── AWS_DEPLOYMENT_GUIDE.md   # Notes on deploying to EC2 / ECS / EKS
+├── CLAUDE.md                 # Claude Code project instructions
 └── README.md
 ```
 
 ## Stopping Services
 
 ```bash
-docker-compose down
+docker compose down
 ```
 
 To remove volumes (databases):
 ```bash
-docker-compose down -v
+docker compose down -v
 ```
 
 ## Development
 
+### Running Unit Tests
+Each service's tests mock the database and cache, so no containers are needed:
+```bash
+cd movie-service && pip install -r requirements.txt pytest httpx && pytest
+cd user-service  && pip install -r requirements.txt pytest httpx && pytest
+```
+
 ### Viewing Logs
 ```bash
 # All services
-docker-compose logs -f
+docker compose logs -f
 
 # Specific service
-docker-compose logs -f user-service
-docker-compose logs -f movie-service
-docker-compose logs -f watchlist-service
+docker compose logs -f user-service
+docker compose logs -f movie-service
+docker compose logs -f watchlist-service
 ```
 
 ### Accessing Redis CLI
@@ -306,3 +334,7 @@ docker exec -it watchlist-db psql -U watchlist -d watchlistdb
 - **API Gateway**: Nginx
 - **Container Orchestration**: Docker Compose
 - **HTTP Client**: httpx
+
+## License
+
+MIT. See [LICENSE](LICENSE).

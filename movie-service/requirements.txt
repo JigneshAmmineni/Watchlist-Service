@@ -1,6 +1,6 @@
-fastapi==0.104.1
-uvicorn==0.24.0
-psycopg2-binary==2.9.9
-pydantic==2.5.0
-redis==5.0.1
-sqlmodel==0.0.14
+fastapi==0.159.1
+uvicorn==0.54.0
+psycopg2-binary==2.9.13
+pydantic==2.14.1
+redis==8.1.0
+sqlmodel==0.0.48
